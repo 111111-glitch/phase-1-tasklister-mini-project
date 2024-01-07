@@ -1,69 +1,102 @@
 document.addEventListener("DOMContentLoaded", () => {
   // your code here
-  const taskInput = document.getElementById('taskInput');
-  const submitButton = document.getElementById('submitTask');
-  const taskList = document.getElementById('taskList');
+  const form = document.getElementById("create-task-form");
+  const taskList = document.getElementById("tasks");
 
-  submitButton.addEventListener('click', () => {
-    const taskText = taskInput.value.trim();
+  form.addEventListener("submit", function (event) {
+    event.preventDefault();
 
-    if (taskText !== '') {
-      // Create a new list item
-      const listItem = document.createElement('li');
-      listItem.textContent = taskText;
+    const taskDescription = document.getElementById("new-task-description").value;
+    const priority = document.getElementById("priority").value;
+    const user = document.getElementById("user").value;
+    const duration = document.getElementById("duration").value;
+    const dateDue = document.getElementById("date-due").value;
 
-      // Append the new list item to the task list
-      taskList.appendChild(listItem);
+    const newTask = document.createElement("li");
+    newTask.textContent = `Description: ${taskDescription}, Priority: ${priority}, User: ${user}, Duration: ${duration}, Date Due: ${dateDue}`;
 
-      // Clear the input field after adding the task
-      taskInput.value = '';
-    }
+    newTask.style.color = getColorForPriority(priority);
+
+    const completionCheckbox = document.createElement("input");
+    completionCheckbox.type = "checkbox";
+    completionCheckbox.id = "task-completed-task"; // Use a unique id for the dynamically created checkbox
+    completionCheckbox.addEventListener("change", function () {
+      newTask.classList.toggle("completed", completionCheckbox.checked);
+    });
+
+    const deleteButton = document.createElement("button");
+    deleteButton.textContent = "Delete";
+    deleteButton.addEventListener("click", function () {
+      taskList.removeChild(newTask);
+    });
+
+    const editButton = document.createElement("button");
+    editButton.textContent = "Edit";
+    editButton.addEventListener("click", function () {
+      editTask(newTask);
+    });
+
+    newTask.appendChild(completionCheckbox);
+    newTask.appendChild(deleteButton);
+    newTask.appendChild(editButton);
+
+    taskList.appendChild(newTask);
+
+    // Reset form fields
+    form.reset();
   });
-});
-document.addEventListener("DOMContentLoaded", () => {
-  const taskInput = document.getElementById('taskInput');
-  const prioritySelect = document.getElementById('prioritySelect');
-  const submitButton = document.getElementById('submitTask');
-  const taskList = document.getElementById('taskList');
 
-  submitButton.addEventListener('click', () => {
-    const taskText = taskInput.value.trim();
-    const priorityValue = prioritySelect.value;
-
-    if (taskText !== '') {
-      // Create a new list item
-      const listItem = document.createElement('li');
-      listItem.textContent = taskText;
-
-      // Add priority class to the list item
-      listItem.classList.add(getPriorityClass(priorityValue));
-
-      // Append the new list item to the task list
-      taskList.appendChild(listItem);
-
-      // Clear the input field after adding the task
-      taskInput.value = '';
-    }
+  // Event listeners for sorting and checkbox
+  document.getElementById("sort-asc").addEventListener("click", function () {
+    sortTasks("asc");
   });
 
-  // Function to get priority class based on the selected value
-  function getPriorityClass(priority) {
+  document.getElementById("sort-desc").addEventListener("click", function () {
+    sortTasks("desc");
+  });
+
+  function getColorForPriority(priority) {
     switch (priority) {
-      case 'high':
-        return 'high-priority';
-      case 'medium':
-        return 'medium-priority';
-      case 'low':
-        return 'low-priority';
+      case "low":
+        return "green";
+      case "medium":
+        return "yellow";
+      case "high":
+        return "red";
       default:
-        return '';
+        return "black";
     }
   }
 
-  // Event delegation for delete functionality
-  taskList.addEventListener('click', (event) => {
-    if (event.target.tagName === 'LI') {
-      event.target.remove();
-    }
-  });
+  function sortTasks(order) {
+    const tasks = Array.from(taskList.children);
+
+    tasks.sort((taskA, taskB) => {
+      const priorityA = taskA.style.color;
+      const priorityB = taskB.style.color;
+
+      if (order === "asc") {
+        return priorityA.localeCompare(priorityB);
+      } else {
+        return priorityB.localeCompare(priorityA);
+      }
+    });
+
+    taskList.innerHTML = "";
+
+    tasks.forEach(task => {
+      taskList.appendChild(task);
+    });
+  }
+
+  function editTask(taskElement) {
+    const description = prompt("Edit task description:", taskElement.textContent.split(",")[0].slice(12));
+    const priority = prompt("Edit priority:", taskElement.style.color === "green" ? "low" : (taskElement.style.color === "yellow" ? "medium" : "high"));
+
+    taskElement.textContent = `Description: ${description}, Priority: ${priority}`;
+    taskElement.style.color = getColorForPriority(priority);
+  }
+
+
+
 });
